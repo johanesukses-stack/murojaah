@@ -107,6 +107,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .w.x{color:var(--mut);opacity:.35;border-color:transparent}
 :root{--rp:#3F6FE0}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--rp:#8FB0FF}}:root[data-theme="dark"]{--rp:#8FB0FF}
 .w.rp{color:var(--rp);border-color:var(--rp);border-bottom-style:dotted}
+.w.rp.now{color:var(--ok);border-color:var(--ok);border-bottom-style:solid}
 #dPage [data-a].on{background:color-mix(in srgb,var(--gold) 24%,transparent);border-radius:6px}
 #sm{position:fixed;inset:0;overflow:auto;background:var(--bg);z-index:20;padding-top:env(safe-area-inset-top,0px)}
 mark.df{background:color-mix(in srgb,var(--gold) 35%,transparent);color:inherit;border-radius:4px}
@@ -127,7 +128,7 @@ mark.df{background:color-mix(in srgb,var(--gold) 35%,transparent);color:inherit;
 <p id="sum" class="rng"></p>
 <p class="sub" style="margin:14px 0 6px">Toleransi bacaan</p><div class="seg" id="tolSeg"></div><p class="note" id="tolNote" style="margin:-6px 0 16px"></p>
 <button class="go" id="go">Mulai murojaah</button>
-<p class="note">Buka di Chrome Android dan izinkan mikrofon. Kata yang keliru ditandai merah, tanpa getaran. Versi 10.</p>
+<p class="note">Buka di Chrome Android dan izinkan mikrofon. Kata yang keliru ditandai merah, tanpa getaran. Versi 11.</p>
 </section>
 
 <section id="det" hidden>
@@ -184,7 +185,7 @@ const NM={ا:'الف',ل:'لام',م:'ميم',ص:'صاد',ر:'را',ك:'كاف',
 const MQ=new Set(['الم','المص','الر','المر','كهيعص','طه','طسم','طس','يس','ص','حم','عسق','ق','ن']);
 const spell=(n,T,i)=>{const nm=[...n].map(c=>NM[c]);return i+nm.length<=T.length&&nm.every((x,k)=>ok(T[i+k],x))};
 const ok=(a,b)=>{const L=Math.max(a.length,b.length);const m=tol===0?(L<5?0:1):tol===1?(L<3?0:Math.max(1,Math.floor(L*.3))):(L<3?0:Math.max(1,Math.floor(L*.45)));return lev(a,b)<=m};
-let RS=new Set,RP=new Set,AYI={},LAY={},ST=[],CS=new Set,SE=new Set,SS=new Set,ER={};try{ER=JSON.parse(localStorage.getItem('er')||'{}')}catch(e){}
+let curW=-1,RS=new Set,RP=new Set,AYI={},LAY={},ST=[],CS=new Set,SE=new Set,SS=new Set,ER={};try{ER=JSON.parse(localStorage.getItem('er')||'{}')}catch(e){}
 let W=[],AY=[],els=[],pos=0,errPos=-1,base={pos:0,off:0},lastT=0,sid=0,seen=new Set(),listening=false,rec=null,curAy=-1,showAll=false;
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 
@@ -210,14 +211,14 @@ $('sa2').placeholder=7;$('ta').placeholder=D[1].v.length;
 
 function build(r){W=[];AY=[];r.forEach(([s,a1,a2])=>D[s].v.slice(a1-1,a2).forEach((t,k)=>{const ws=[];t.split(/\s+/).filter(Boolean).forEach(w=>{const n=N(w);if(!n&&ws.length)ws[ws.length-1].w+=' '+w;else if(n)ws.push({w,n})});const y={s,a:a1+k,st:W.length,en:W.length+ws.length};AY.push(y);ws.forEach(x=>{x.ai=AY.length-1;W.push(x)})}))}
 $('go').onclick=()=>{const q=sum();if(q.err)return;const[s1,a1]=UN(q.s),[s2,a2]=UN(q.e),r=[];for(let s=s1;s<=s2;s++)r.push([s,s===s1?a1:1,s===s2?a2:D[s].v.length]);startRange(r)};
-function startRange(r){stop();ST=[];CS=new Set;SE=new Set;SS=new Set;RS=new Set;RP=new Set;build(r);
+function startRange(r){stop();ST=[];CS=new Set;SE=new Set;SS=new Set;RS=new Set;RP=new Set;curW=-1;build(r);
 AYI={};AY.forEach((y,k)=>AYI[ABS(y.s,y.a)]=k);const pa=PG(ABS(AY[0].s,AY[0].a)),pb=PG(ABS(AY[AY.length-1].s,AY[AY.length-1].a));
 const fnR=x=>{const k=AYI[x.n];if(x.num)return k===undefined?`<span class="num">${AR(x.v)}</span>`:`<span class="num" data-k="${k}">${AR(x.v)}</span>`;return k!==undefined&&x.k>=0?`<span class="w h" id="w${AY[k].st+x.k}">${x.t}</span>`:`<span class="w x">${x.t}</span>`};
 Promise.resolve(document.fonts.load('40px KFGQPC')).catch(()=>{}).then(()=>{LAY={};let h='';for(let g=pa;g<=pb;g++)h+=mpHTML(g,fnR);
 $('page').innerHTML=h;els=W.map((_,j)=>$('w'+j));pos=0;errPos=-1;base={pos:0,off:0};lastT=0;curAy=-1;$('setup').hidden=true;$('det').hidden=true;$('eh').hidden=true;$('read').hidden=false;fit();paint();window.scrollTo(0,0)})};
 $('back').onclick=()=>{stop();$('read').hidden=true;$('setup').hidden=false};
 
-function paint(){const hl=document.querySelector('.hint');for(let j=0;j<W.length;j++){const c=j<pos?'w'+(ST[j]?' '+ST[j]:CS.has(j)?' sk':'')+(j===pos-1&&listening?' now':'')+(RP.has(j)||RS.has(j)?' rp':''):j===errPos?'w bad':j===pos?'w h cur':'w h';if(els[j].className!==c&&!els[j].classList.contains('hint'))els[j].className=c}
+function paint(){const hl=document.querySelector('.hint');for(let j=0;j<W.length;j++){const c=j<pos?'w'+(ST[j]?' '+ST[j]:CS.has(j)?' sk':'')+(j===curW&&listening?' now':'')+(RP.has(j)||RS.has(j)?' rp':''):j===errPos?'w bad':j===pos?'w h cur':'w h';if(els[j].className!==c&&!els[j].classList.contains('hint'))els[j].className=c}
 const done=pos>=W.length,y=AY[W[Math.min(pos,W.length-1)].ai];$('where').textContent=`${D[y.s].t} : ${y.a} · hlm ${PG(ABS(y.s,y.a))}`;$('pb').style.width=(pos/W.length*100)+'%';
 if(done){$('st').className='';{const n=W.length,e=SE.size,k=SS.size,h=ST.filter(x=>x==='hp').length;$('st').textContent=`Selesai, alhamdulillah. Dari ${n} kata: keliru ${e}, terlewat ${k}, dibantu ${h}, diulang ${RP.size}. Ketepatan ${Math.max(0,Math.round((n-e-k-h)/n*100))}%.`};stop()}else{$('st').className=''}
 if(y&&curAy!==W[Math.min(pos,W.length-1)].ai){curAy=W[Math.min(pos,W.length-1)].ai;els[Math.min(pos,W.length-1)].scrollIntoView({block:'center',behavior:'smooth'})}}
@@ -225,19 +226,19 @@ if(y&&curAy!==W[Math.min(pos,W.length-1)].ai){curAy=W[Math.min(pos,W.length-1)].
 function alarm(){$('page').classList.remove('fl');void $('page').offsetWidth;$('page').classList.add('fl');}
 
 
-function sim(T,fin){let p=base.pos,i=base.off,err=-1,bad=0,fl=[],sk=[],rp=[];const need=tol===2?2:1,K=tol===0?2:3,LA=tol===0?0:tol===1?1:3;
+function sim(T,fin){let p=base.pos,i=base.off,err=-1,bad=0,fl=[],sk=[],rp=[],lw=base.pos-1;const need=tol===2?2:1,K=tol===0?2:3,LA=tol===0?0:tol===1?1:3;
 while(i<T.length&&p<W.length){const last=i===T.length-1&&!fin,e=W[p],y=AY[e.ai];
 if(p===y.st&&y.a===1&&y.s!==1&&ok(T[i],'بسم')&&(i+1>=T.length||ok(T[i+1],'الله'))){i+=Math.min(4,T.length-i);continue}
 let c=0,m=0;
 if(p===y.st&&(y.a===1||e.n==='عسق')&&MQ.has(e.n)&&spell(e.n,T,i)){c=[...e.n].length;m=1}
 else out:for(let tot=2;tot<=2*K;tot++)for(let k=1;k<tot;k++){const j=tot-k;if(k>K||j>K||i+k>T.length||p+j>W.length)continue;let a=T[i],b=e.n;for(let x=1;x<k;x++)a+=T[i+x];for(let x=1;x<j;x++)b+=W[p+x].n;if(ok(a,b)){c=k;m=j;break out}}
-if(m){p+=m;i+=c;err=-1;bad=0;continue}
-if(i+1<T.length&&p>=2){let rq=-1;for(let q=p-2;q>=Math.max(0,p-12);q--){if(ok(T[i],W[q].n)&&ok(T[i+1],W[q+1].n)){rq=q;break}}if(rq>=0){let r=0;while(i+r<T.length&&rq+r<p&&ok(T[i+r],W[rq+r].n)){rp.push(rq+r);r++}i+=r;err=-1;bad=0;continue}}
+if(m){p+=m;lw=p-1;i+=c;err=-1;bad=0;continue}
+if(i+1<T.length&&p>=2){let rq=-1;for(let q=p-2;q>=Math.max(0,p-30);q--){if(ok(T[i],W[q].n)&&ok(T[i+1],W[q+1].n)){rq=q;break}}if(rq>=0){let r=0;while(i+r<T.length&&rq+r<p&&ok(T[i+r],W[rq+r].n)){rp.push(rq+r);r++}lw=rq+r-1;i+=r;err=-1;bad=0;continue}}
 let jump=0;if(LA)for(let d=1;d<=LA&&p+d<W.length;d++)if(ok(T[i],W[p+d].n)&&(i+1<T.length?(p+d+1>=W.length||ok(T[i+1],W[p+d+1].n)):(tol===2&&fin))){jump=d;break}
 if(jump){for(let d=0;d<jump;d++)sk.push(p+d);p+=jump;err=-1;bad=0;continue}
 bad++;if(!last&&bad>=need){err=p;fl.push(i)}i++}
-return{p,err,fl,sk,rp}}
-function run(T,fin){const r=sim(T,fin);r.fl.forEach(i=>{const k=sid+':'+i;if(!seen.has(k)){seen.add(k);alarm()}});pos=r.p;errPos=r.err;CS=new Set(r.sk);RS=new Set(r.rp);if(fin)r.rp.forEach(j=>RP.add(j));if(errPos>=0)lg(errPos,'k');if(fin)r.sk.forEach(j=>{ST[j]=ST[j]||'sk';lg(j,'l')});paint()}
+return{p,err,fl,sk,rp,lw}}
+function run(T,fin){const r=sim(T,fin);r.fl.forEach(i=>{const k=sid+':'+i;if(!seen.has(k)){seen.add(k);alarm()}});pos=r.p;errPos=r.err;CS=new Set(r.sk);RS=new Set(r.rp);curW=r.lw;if(fin)r.rp.forEach(j=>RP.add(j));if(errPos>=0)lg(errPos,'k');if(fin)r.sk.forEach(j=>{ST[j]=ST[j]||'sk';lg(j,'l')});paint()}
 function lg(j,t){const k=sid+':'+t+j;if(seen.has(k))return;seen.add(k);(t==='k'?SE:SS).add(j);const y=AY[W[j].ai],n=ABS(y.s,y.a),id=n+':'+(j-y.st)+':'+t,e=ER[id]||(ER[id]={n,i:j-y.st,w:W[j].w,t,c:0});e.c++;e.d=Date.now();try{localStorage.setItem('er',JSON.stringify(ER))}catch(x){}}
 
 function start(){if(!SR){$('st').className='err';$('st').textContent='Peramban ini belum mendukung pengenalan suara. Pakai Chrome di Android.';return}
@@ -383,6 +384,9 @@ function mpHTML(pg,fn){const Y=layout(pg);let h=`<div class="mp" data-em="${Y.em
 Y.rows.forEach(r=>{h+=r.h===1?`<div class="ln hd"><h2 class="sh">سورة ${D[r.s].n}</h2></div>`:r.h===2?`<div class="ln bsm">${D[1].v[0]}</div>`:`<div class="ln${r.free?' fr':''}">${r.t.map(fn).join('')}</div>`});return h+'</div>'}
 function fit(){document.querySelectorAll('.mp').forEach(m=>{const c=getComputedStyle(m),cw=m.clientWidth-parseFloat(c.paddingLeft)-parseFloat(c.paddingRight);if(cw>0)m.style.setProperty('--fs',Math.min(34,cw*.985/(+m.dataset.em))+'px')})}
 window.addEventListener('resize',fit);
+/* ===== Layar tetap menyala ===== */
+let WL=null;async function wake(){try{if('wakeLock' in navigator&&!WL&&!document.hidden){WL=await navigator.wakeLock.request('screen');WL.addEventListener('release',()=>{WL=null})}}catch(e){}}
+wake();document.addEventListener('visibilitychange',wake);['click','touchstart'].forEach(v=>document.addEventListener(v,wake,{passive:true}));
 
 /* ===== Ayat serupa (mutasyabihat) ===== */
 let TRI=null;const tk=i=>GK[i]+'|'+GK[i+1]+'|'+GK[i+2];
