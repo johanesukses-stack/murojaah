@@ -97,6 +97,19 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .go2{border:0;border-radius:10px;padding:8px 14px;background:var(--gold);color:var(--on);font-weight:700}
 .eha{direction:rtl;font-family:KFGQPC,'Amiri Quran',serif;font-size:1.4rem;line-height:2;margin-top:6px}.eha .chip{font-size:1rem;margin:0 0 0 6px}
 .chip.rd{border-color:var(--bad);color:var(--bad)}.chip.ol{border-color:var(--sk);color:var(--sk)}
+.mp{--fs:22px;border:2px solid var(--gold);border-radius:10px;padding:6px 8px 8px;margin:0 0 14px;background:var(--card);direction:rtl;font-family:KFGQPC,'Amiri Quran',serif}
+.page#page,.page#dPage{border:0;padding:0;background:none;font-size:inherit;line-height:1}
+.pn{text-align:center;color:var(--mut);font:12px Figtree,system-ui,sans-serif;direction:ltr;padding:2px 0 4px}
+.ln{display:flex;justify-content:space-between;gap:.3em;align-items:center;height:2.3em;font-size:var(--fs);white-space:nowrap;line-height:1}
+.ln>*{line-height:1.7}.ln .num{flex:none;margin:0;font-family:system-ui,sans-serif;font-size:.5em}
+.ln.fr,.ln.bsm{justify-content:center}
+.ln.hd .sh{margin:0;width:100%;font-size:.85em;line-height:1.7;box-sizing:border-box;border:1px solid var(--gold);border-radius:6px}
+.w.x{color:var(--mut);opacity:.35;border-color:transparent}
+:root{--rp:#3F6FE0}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--rp:#8FB0FF}}:root[data-theme="dark"]{--rp:#8FB0FF}
+.w.rp{color:var(--rp);border-color:var(--rp);border-bottom-style:dotted}
+#dPage [data-a].on{background:color-mix(in srgb,var(--gold) 24%,transparent);border-radius:6px}
+#sm{position:fixed;inset:0;overflow:auto;background:var(--bg);z-index:20;padding-top:env(safe-area-inset-top,0px)}
+mark.df{background:color-mix(in srgb,var(--gold) 35%,transparent);color:inherit;border-radius:4px}
 </style></head>
 <body>
 <section id="setup" class="wrap">
@@ -114,7 +127,7 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 <p id="sum" class="rng"></p>
 <p class="sub" style="margin:14px 0 6px">Toleransi bacaan</p><div class="seg" id="tolSeg"></div><p class="note" id="tolNote" style="margin:-6px 0 16px"></p>
 <button class="go" id="go">Mulai murojaah</button>
-<p class="note">Buka di Chrome Android dan izinkan mikrofon. Kata yang keliru ditandai merah, tanpa getaran. Versi 9.</p>
+<p class="note">Buka di Chrome Android dan izinkan mikrofon. Kata yang keliru ditandai merah, tanpa getaran. Versi 10.</p>
 </section>
 
 <section id="det" hidden>
@@ -133,12 +146,13 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 </section>
 
 <section id="eh" hidden><div class="top"><div class="l1"><button class="back" id="ehBack">Tutup</button><b>Riwayat kesalahan</b><button class="back" id="ehClr">Hapus</button></div></div><div class="wrap"><p id="ehSum" class="rng"></p><div class="seg" id="ehSeg"></div><button class="go" id="ehAll" style="margin-bottom:14px">Latih ulang semua kesalahan</button><p class="note" style="margin:0 0 12px">Merah: kata keliru. Oranye: kata terlewat.</p><div id="ehList"></div></div></section>
+<section id="sm" hidden><div class="top"><div class="l1"><button class="back" id="smBack">Tutup</button><b>Ayat serupa</b><span></span></div></div><div class="wrap"><p class="note" style="margin:0 0 12px">Kata yang berbeda dari ayat yang sedang kamu baca ditandai emas.</p><div id="smL"></div></div></section>
 <section id="read" hidden>
 <div class="top">
 <div class="l1"><button class="back" id="back">Ganti surat</button><b id="where"></b><button class="back" id="tolBtn"></button></div>
 <div class="bar"><i id="pb"></i></div>
 <div id="st">Tekan mikrofon, lalu mulai membaca.</div>
-<div class="tools"><button id="nw" aria-label="Tampilkan kata berikutnya">‹ Kata berikutnya</button><button id="na" aria-label="Tampilkan ayat berikutnya">« Ayat berikutnya</button><button id="erb">Kesalahan</button></div>
+<div class="tools"><button id="nw" aria-label="Tampilkan kata berikutnya">‹ Kata berikutnya</button><button id="na" aria-label="Tampilkan ayat berikutnya">« Ayat berikutnya</button><button id="sim">Serupa</button><button id="erb">Kesalahan</button></div>
 </div>
 <div class="page" id="page" dir="rtl"></div>
 <div class="dock">
@@ -162,14 +176,15 @@ const LB=n=>{const[s,a]=UN(n);return D[s].t+' '+a};
 const MAXW=12000;
 const N=s=>s.replace(/[\u0640\u064B-\u065F\u0670\u06D6-\u06ED\u08D3-\u08FF]/g,'').replace(/[ٱأإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[ؤئء]/g,'').replace(/[^\u0621-\u064A]/g,'');
 const AR=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
-function lev(a,b){const m=[];for(let i=0;i<=a.length;i++)m[i]=[i];for(let j=1;j<=b.length;j++)m[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length]}
+const CF={};['ثسص','ذزظ','ضدظ','تط','كق','حخه'].forEach(g=>[...g].forEach(a=>[...g].forEach(b=>{if(a!==b)CF[a+b]=1})));
+function lev(a,b){const m=[];for(let i=0;i<=a.length;i++)m[i]=[i];for(let j=1;j<=b.length;j++)m[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:CF[a[i-1]+b[j-1]]?.5:1));return m[a.length][b.length]}
 let tol=1;try{const v=localStorage.getItem('tol');if(v!==null)tol=+v}catch(e){}
 const TOL=[['Ketat','Hampir harus persis seperti ayat.'],['Sedang','Selisih satu-dua huruf diterima, satu kata yang tak tertangkap dimaafkan.'],['Longgar','Cocok untuk bacaan cepat: salah dengar dan hingga tiga kata yang tak tertangkap dimaafkan.']];
 const NM={ا:'الف',ل:'لام',م:'ميم',ص:'صاد',ر:'را',ك:'كاف',ه:'ها',ي:'يا',ع:'عين',ط:'طا',س:'سين',ح:'حا',ق:'قاف',ن:'نون'};
 const MQ=new Set(['الم','المص','الر','المر','كهيعص','طه','طسم','طس','يس','ص','حم','عسق','ق','ن']);
 const spell=(n,T,i)=>{const nm=[...n].map(c=>NM[c]);return i+nm.length<=T.length&&nm.every((x,k)=>ok(T[i+k],x))};
 const ok=(a,b)=>{const L=Math.max(a.length,b.length);const m=tol===0?(L<5?0:1):tol===1?(L<3?0:Math.max(1,Math.floor(L*.3))):(L<3?0:Math.max(1,Math.floor(L*.45)));return lev(a,b)<=m};
-let ST=[],CS=new Set,SE=new Set,SS=new Set,ER={};try{ER=JSON.parse(localStorage.getItem('er')||'{}')}catch(e){}
+let RS=new Set,RP=new Set,AYI={},LAY={},ST=[],CS=new Set,SE=new Set,SS=new Set,ER={};try{ER=JSON.parse(localStorage.getItem('er')||'{}')}catch(e){}
 let W=[],AY=[],els=[],pos=0,errPos=-1,base={pos:0,off:0},lastT=0,sid=0,seen=new Set(),listening=false,rec=null,curAy=-1,showAll=false;
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 
@@ -195,31 +210,34 @@ $('sa2').placeholder=7;$('ta').placeholder=D[1].v.length;
 
 function build(r){W=[];AY=[];r.forEach(([s,a1,a2])=>D[s].v.slice(a1-1,a2).forEach((t,k)=>{const ws=[];t.split(/\s+/).filter(Boolean).forEach(w=>{const n=N(w);if(!n&&ws.length)ws[ws.length-1].w+=' '+w;else if(n)ws.push({w,n})});const y={s,a:a1+k,st:W.length,en:W.length+ws.length};AY.push(y);ws.forEach(x=>{x.ai=AY.length-1;W.push(x)})}))}
 $('go').onclick=()=>{const q=sum();if(q.err)return;const[s1,a1]=UN(q.s),[s2,a2]=UN(q.e),r=[];for(let s=s1;s<=s2;s++)r.push([s,s===s1?a1:1,s===s2?a2:D[s].v.length]);startRange(r)};
-function startRange(r){stop();ST=[];CS=new Set;SE=new Set;SS=new Set;build(r);
-let h='';AY.forEach((y,k)=>{if(!k||AY[k-1].s!==y.s)h+=`<h2 class="sh">سورة ${D[y.s].n}</h2>`;h+='<span>';for(let j=y.st;j<y.en;j++)h+=`<span class="w h" id="w${j}">${W[j].w}</span> `;h+=`<span class="num" data-k="${k}">${AR(y.a)}</span></span> `});
-$('page').innerHTML=h;els=W.map((_,j)=>$('w'+j));pos=0;errPos=-1;base={pos:0,off:0};lastT=0;curAy=-1;$('setup').hidden=true;$('det').hidden=true;$('eh').hidden=true;$('read').hidden=false;paint();window.scrollTo(0,0)};
+function startRange(r){stop();ST=[];CS=new Set;SE=new Set;SS=new Set;RS=new Set;RP=new Set;build(r);
+AYI={};AY.forEach((y,k)=>AYI[ABS(y.s,y.a)]=k);const pa=PG(ABS(AY[0].s,AY[0].a)),pb=PG(ABS(AY[AY.length-1].s,AY[AY.length-1].a));
+const fnR=x=>{const k=AYI[x.n];if(x.num)return k===undefined?`<span class="num">${AR(x.v)}</span>`:`<span class="num" data-k="${k}">${AR(x.v)}</span>`;return k!==undefined&&x.k>=0?`<span class="w h" id="w${AY[k].st+x.k}">${x.t}</span>`:`<span class="w x">${x.t}</span>`};
+Promise.resolve(document.fonts.load('40px KFGQPC')).catch(()=>{}).then(()=>{LAY={};let h='';for(let g=pa;g<=pb;g++)h+=mpHTML(g,fnR);
+$('page').innerHTML=h;els=W.map((_,j)=>$('w'+j));pos=0;errPos=-1;base={pos:0,off:0};lastT=0;curAy=-1;$('setup').hidden=true;$('det').hidden=true;$('eh').hidden=true;$('read').hidden=false;fit();paint();window.scrollTo(0,0)})};
 $('back').onclick=()=>{stop();$('read').hidden=true;$('setup').hidden=false};
 
-function paint(){const hl=document.querySelector('.hint');for(let j=0;j<W.length;j++){const c=j<pos?'w'+(ST[j]?' '+ST[j]:CS.has(j)?' sk':'')+(j===pos-1&&listening?' now':''):j===errPos?'w bad':j===pos?'w h cur':'w h';if(els[j].className!==c&&!els[j].classList.contains('hint'))els[j].className=c}
+function paint(){const hl=document.querySelector('.hint');for(let j=0;j<W.length;j++){const c=j<pos?'w'+(ST[j]?' '+ST[j]:CS.has(j)?' sk':'')+(j===pos-1&&listening?' now':'')+(RP.has(j)||RS.has(j)?' rp':''):j===errPos?'w bad':j===pos?'w h cur':'w h';if(els[j].className!==c&&!els[j].classList.contains('hint'))els[j].className=c}
 const done=pos>=W.length,y=AY[W[Math.min(pos,W.length-1)].ai];$('where').textContent=`${D[y.s].t} : ${y.a} · hlm ${PG(ABS(y.s,y.a))}`;$('pb').style.width=(pos/W.length*100)+'%';
-if(done){$('st').className='';{const n=W.length,e=SE.size,k=SS.size,h=ST.filter(x=>x==='hp').length;$('st').textContent=`Selesai, alhamdulillah. Dari ${n} kata: keliru ${e}, terlewat ${k}, dibantu ${h}. Ketepatan ${Math.max(0,Math.round((n-e-k-h)/n*100))}%.`};stop()}else{$('st').className=''}
+if(done){$('st').className='';{const n=W.length,e=SE.size,k=SS.size,h=ST.filter(x=>x==='hp').length;$('st').textContent=`Selesai, alhamdulillah. Dari ${n} kata: keliru ${e}, terlewat ${k}, dibantu ${h}, diulang ${RP.size}. Ketepatan ${Math.max(0,Math.round((n-e-k-h)/n*100))}%.`};stop()}else{$('st').className=''}
 if(y&&curAy!==W[Math.min(pos,W.length-1)].ai){curAy=W[Math.min(pos,W.length-1)].ai;els[Math.min(pos,W.length-1)].scrollIntoView({block:'center',behavior:'smooth'})}}
 
 function alarm(){$('page').classList.remove('fl');void $('page').offsetWidth;$('page').classList.add('fl');}
 
 
-function sim(T,fin){let p=base.pos,i=base.off,err=-1,bad=0,fl=[],sk=[];const need=tol===2?2:1,K=tol===0?2:3,LA=tol===0?0:tol===1?1:3;
+function sim(T,fin){let p=base.pos,i=base.off,err=-1,bad=0,fl=[],sk=[],rp=[];const need=tol===2?2:1,K=tol===0?2:3,LA=tol===0?0:tol===1?1:3;
 while(i<T.length&&p<W.length){const last=i===T.length-1&&!fin,e=W[p],y=AY[e.ai];
 if(p===y.st&&y.a===1&&y.s!==1&&ok(T[i],'بسم')&&(i+1>=T.length||ok(T[i+1],'الله'))){i+=Math.min(4,T.length-i);continue}
 let c=0,m=0;
 if(p===y.st&&(y.a===1||e.n==='عسق')&&MQ.has(e.n)&&spell(e.n,T,i)){c=[...e.n].length;m=1}
 else out:for(let tot=2;tot<=2*K;tot++)for(let k=1;k<tot;k++){const j=tot-k;if(k>K||j>K||i+k>T.length||p+j>W.length)continue;let a=T[i],b=e.n;for(let x=1;x<k;x++)a+=T[i+x];for(let x=1;x<j;x++)b+=W[p+x].n;if(ok(a,b)){c=k;m=j;break out}}
 if(m){p+=m;i+=c;err=-1;bad=0;continue}
+if(i+1<T.length&&p>=2){let rq=-1;for(let q=p-2;q>=Math.max(0,p-12);q--){if(ok(T[i],W[q].n)&&ok(T[i+1],W[q+1].n)){rq=q;break}}if(rq>=0){let r=0;while(i+r<T.length&&rq+r<p&&ok(T[i+r],W[rq+r].n)){rp.push(rq+r);r++}i+=r;err=-1;bad=0;continue}}
 let jump=0;if(LA)for(let d=1;d<=LA&&p+d<W.length;d++)if(ok(T[i],W[p+d].n)&&(i+1<T.length?(p+d+1>=W.length||ok(T[i+1],W[p+d+1].n)):(tol===2&&fin))){jump=d;break}
 if(jump){for(let d=0;d<jump;d++)sk.push(p+d);p+=jump;err=-1;bad=0;continue}
 bad++;if(!last&&bad>=need){err=p;fl.push(i)}i++}
-return{p,err,fl,sk}}
-function run(T,fin){const r=sim(T,fin);r.fl.forEach(i=>{const k=sid+':'+i;if(!seen.has(k)){seen.add(k);alarm()}});pos=r.p;errPos=r.err;CS=new Set(r.sk);if(errPos>=0)lg(errPos,'k');if(fin)r.sk.forEach(j=>{ST[j]=ST[j]||'sk';lg(j,'l')});paint()}
+return{p,err,fl,sk,rp}}
+function run(T,fin){const r=sim(T,fin);r.fl.forEach(i=>{const k=sid+':'+i;if(!seen.has(k)){seen.add(k);alarm()}});pos=r.p;errPos=r.err;CS=new Set(r.sk);RS=new Set(r.rp);if(fin)r.rp.forEach(j=>RP.add(j));if(errPos>=0)lg(errPos,'k');if(fin)r.sk.forEach(j=>{ST[j]=ST[j]||'sk';lg(j,'l')});paint()}
 function lg(j,t){const k=sid+':'+t+j;if(seen.has(k))return;seen.add(k);(t==='k'?SE:SS).add(j);const y=AY[W[j].ai],n=ABS(y.s,y.a),id=n+':'+(j-y.st)+':'+t,e=ER[id]||(ER[id]={n,i:j-y.st,w:W[j].w,t,c:0});e.c++;e.d=Date.now();try{localStorage.setItem('er',JSON.stringify(ER))}catch(x){}}
 
 function start(){if(!SR){$('st').className='err';$('st').textContent='Peramban ini belum mendukung pengenalan suara. Pakai Chrome di Android.';return}
@@ -274,16 +292,16 @@ return null}
 let dRec=null,dOn=false,dCur=-1,dFollow=true,dYak=false,dPg=0,dAy=0,dPend=null;
 const JZ=n=>{let j=1;while(j<30&&J[j+1]<=n)j++;return j};
 const wd=t=>t.trim().split(/\s+/).map(N).filter(Boolean);
-function dRender(pg){dIdx();dPg=pg;dAy=0;const a=P[pg],b=P[pg+1]-1;let h='';
-for(let n=a;n<=b;n++){const[s,v]=UN(n);
-if(v===1){h+=`<h2 class="sh">سورة ${D[s].n}</h2>`;if(s!==1&&s!==9)h+=`<div class="bsm">${D[1].v[0]}</div>`}
-let wi=AS[n],h2='';
-D[s].v[v-1].split(/\s+/).filter(Boolean).forEach(w=>{if(N(w)){h2+=`<span id="dw${wi}">${w}</span> `;wi++}else h2+=`<span>${w}</span> `});
-h+=`<span class="ay" id="ay${n}">${h2}<span class="num">${AR(v)}</span></span> `}
-$('dPage').innerHTML=h;$('dTitle').textContent='Halaman '+pg}
+function dRender(pg){dIdx();dPg=pg;dAy=0;$('dPage').innerHTML=mpHTML(pg,x=>x.num?`<span class="num">${AR(x.v)}</span>`:`<span data-a="${x.n}"${x.k>=0?` id="dw${AS[x.n]+x.k}"`:''}>${x.t}</span>`);fit();$('dTitle').textContent='Halaman '+pg}
+
+
+
+
+
+
 function dMark(){document.querySelectorAll('#dPage .on,#dPage .hw').forEach(x=>x.classList.remove('on','hw'));
-const n=GA[dCur],ay=$('ay'+n),w=$('dw'+dCur);if(ay)ay.classList.add('on');if(w)w.classList.add('hw');
-if(ay&&dAy!==n){dAy=n;ay.scrollIntoView({block:'center',behavior:'smooth'})}}
+const n=GA[dCur],w=$('dw'+dCur);document.querySelectorAll(`#dPage [data-a="${n}"]`).forEach(x=>x.classList.add('on'));if(w)w.classList.add('hw');
+if(w&&dAy!==n){dAy=n;w.scrollIntoView({block:'center',behavior:'smooth'})}}
 function dShow(e,yakin){const n=GA[e],[s,a]=UN(n),pg=PG(n);dCur=e;dYak=yakin;
 $('dCard').hidden=false;
 $('dName').innerHTML=`${D[s].t} : ${a}<span class="chip${yakin?'':' mb'}">${yakin?'Yakin':'Mungkin'}</span>`;
@@ -339,6 +357,46 @@ $('ehAll').onclick=()=>{const ns=[...new Set(Object.values(ER).sort((x,y)=>y.c-x
 $('ehClr').onclick=()=>{if(confirm('Hapus semua riwayat kesalahan?')){ER={};try{localStorage.removeItem('er')}catch(e){}ehR()}};
 $('nw').onclick=()=>{if(pos<W.length){ST[pos]='hp';pos++;rebase()}};
 $('na').onclick=()=>{if(pos<W.length){const y=AY[W[pos].ai];for(let j=pos;j<y.en;j++)ST[j]='hp';pos=y.en;rebase()}};
+/* ===== Tata letak Mushaf Madinah: 15 baris per halaman ===== */
+const cvx=document.createElement('canvas').getContext('2d'),SP=.3,NUMW=1;
+const ww=t=>{cvx.font='100px KFGQPC';return cvx.measureText(t).width/100};
+document.fonts.load('40px KFGQPC').then(()=>{LAY={};if(dPg)dRender(dPg)}).catch(()=>{});
+function items(pg){dIdx();const a=P[pg],b=P[pg+1]-1,o=[];
+for(let n=a;n<=b;n++){const[s,v]=UN(n);if(v===1){o.push({h:1,s});if(s!==1&&s!==9)o.push({h:2})}
+let k=0,last=null;D[s].v[v-1].split(/\s+/).filter(Boolean).forEach(w=>{if(N(w)){last={t:w,n,k:k++};o.push(last)}else if(last)last.t+=' '+w;else o.push({t:w,n,k:-1})});
+o.push({num:1,n,v})}return o}
+function brk(ws,k,T,free){const m=ws.length;k=Math.max(1,Math.min(k,m));const pre=[0];ws.forEach((w,i)=>pre[i+1]=pre[i]+w+SP);const wd=(i,j)=>pre[j]-pre[i]-SP;
+const dp=[],bk=[];for(let l=0;l<=k;l++){dp.push(Array(m+1).fill(1e9));bk.push(Array(m+1).fill(0))}dp[0][0]=0;
+for(let l=1;l<=k;l++)for(let j=l;j<=m;j++)for(let i=l-1;i<j;i++){if(dp[l-1][i]>=1e9)continue;const d=wd(i,j)-T,c=dp[l-1][i]+((free&&l===k)?(d>0?d*d*3:0):d*d);if(c<dp[l][j]){dp[l][j]=c;bk[l][j]=i}}
+const o=[];let j=m;for(let l=k;l>=1;l--){const i=bk[l][j];o.unshift([i,j]);j=i}return o}
+function layout(pg){if(LAY[pg])return LAY[pg];const it=items(pg),LN=pg<3?8:15,seq=[];let cur=[];
+it.forEach(x=>{if(x.h){if(cur.length)seq.push({sg:cur});cur=[];seq.push(x)}else cur.push(x)});if(cur.length)seq.push({sg:cur});
+seq.forEach(q=>{if(q.sg){q.sg.forEach(x=>x.w=x.num?NUMW:ww(x.t));q.sw=q.sg.reduce((a,x)=>a+x.w+SP,0)-SP}});
+const segs=seq.filter(q=>q.sg),TL=Math.max(segs.length,LN-seq.filter(q=>q.h).length),T=segs.reduce((a,q)=>a+q.sw+SP,0)/TL;
+segs.forEach(q=>{q.free=(seq[seq.indexOf(q)+1]||{}).h>0;q.k=Math.max(1,q.free?Math.ceil(q.sw/T-.2):Math.round(q.sw/T))});
+let d=TL-segs.reduce((a,q)=>a+q.k,0),g=0;
+while(d!==0&&g++<40){const c=d>0?segs.reduce((a,q)=>q.sw/q.k>a.sw/a.k?q:a):segs.filter(q=>q.k>1).reduce((a,q)=>!a||q.sw/q.k<a.sw/a.k?q:a,null);if(!c)break;c.k+=d>0?1:-1;d+=d>0?-1:1}
+const rows=[];let em=1;
+seq.forEach(q=>{if(q.h)rows.push(q.h===1?{h:1,s:q.s}:{h:2});else brk(q.sg.map(x=>x.w),q.k,T,q.free).forEach(([i,j],li,ar)=>{const t=q.sg.slice(i,j);em=Math.max(em,t.reduce((a,x)=>a+x.w+SP,0)-SP);rows.push({t,free:q.free&&li===ar.length-1})})});
+return LAY[pg]={rows,em}}
+function mpHTML(pg,fn){const Y=layout(pg);let h=`<div class="mp" data-em="${Y.em.toFixed(3)}"><div class="pn">Halaman ${AR(pg)}</div>`;
+Y.rows.forEach(r=>{h+=r.h===1?`<div class="ln hd"><h2 class="sh">سورة ${D[r.s].n}</h2></div>`:r.h===2?`<div class="ln bsm">${D[1].v[0]}</div>`:`<div class="ln${r.free?' fr':''}">${r.t.map(fn).join('')}</div>`});return h+'</div>'}
+function fit(){document.querySelectorAll('.mp').forEach(m=>{const c=getComputedStyle(m),cw=m.clientWidth-parseFloat(c.paddingLeft)-parseFloat(c.paddingRight);if(cw>0)m.style.setProperty('--fs',Math.min(34,cw*.985/(+m.dataset.em))+'px')})}
+window.addEventListener('resize',fit);
+
+/* ===== Ayat serupa (mutasyabihat) ===== */
+let TRI=null;const tk=i=>GK[i]+'|'+GK[i+1]+'|'+GK[i+2];
+function triIdx(){if(TRI)return;dIdx();TRI=new Map;for(let n=1;n<=6236;n++){const a=AS[n],b=AS[n+1],sn=new Set;for(let i=a;i+2<b;i++){const k=tk(i);if(sn.has(k))continue;sn.add(k);let l=TRI.get(k);if(!l)TRI.set(k,l=[]);l.push(n)}}}
+function similar(n){triIdx();const a=AS[n],b=AS[n+1],sc={},sn=new Set;
+for(let i=a;i+2<b;i++){const k=tk(i);if(sn.has(k))continue;sn.add(k);const l=TRI.get(k);if(l.length>40)continue;l.forEach(m=>{if(m!==n)sc[m]=(sc[m]||0)+1})}
+const tot=Math.max(1,b-a-2);return Object.entries(sc).map(([m,c])=>({m:+m,c,r:c/Math.min(tot,Math.max(1,AS[+m+1]-AS[+m]-2))})).filter(x=>x.c>=2&&x.r>=.25).sort((x,y)=>y.r-x.r||y.c-x.c).slice(0,10)}
+$('sim').onclick=()=>{if(!W.length)return;const y=AY[W[Math.min(pos,W.length-1)].ai],n=ABS(y.s,y.a),R=similar(n),cs=new Set(GK.slice(AS[n],AS[n+1]));
+const tx=(m,hl)=>{const[s,a]=UN(m);return D[s].v[a-1].split(/\s+/).map(w=>{const x=N(w);return x&&hl&&!cs.has(K(x))?`<mark class="df">${w}</mark>`:w}).join(' ')};
+const card=(m,t,hl)=>{const[s,a]=UN(m);return `<div class="eh"><div class="ehh"><div><b>${D[s].t} : ${a}</b><small>${t}</small></div></div><div class="eha">${tx(m,hl)}</div></div>`};
+$('smL').innerHTML=card(n,'Ayat ini · hlm '+PG(n),0)+(R.length?R.map(x=>card(x.m,`Hlm ${PG(x.m)} · ${Math.round(x.r*100)}% mirip`,1)).join(''):'<p class="note">Tidak ada ayat serupa yang menonjol.</p>');
+$('sm').hidden=false;$('sm').scrollTop=0};
+$('smBack').onclick=()=>{$('sm').hidden=true};
+
 </script><script>
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(e){console.warn('SW gagal',e)})})}
 </script>
