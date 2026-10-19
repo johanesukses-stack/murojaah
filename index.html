@@ -64,11 +64,28 @@ h1{font-size:1.6rem;margin:8px 0 4px}
 @media (prefers-reduced-motion:reduce){.mic.on::after,.page.fl{animation:none}}
 button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 [hidden]{display:none!important}
+#dSt{font-size:.88rem;color:var(--mut);min-height:1.3em;margin-top:6px}
+#dSt.err{color:var(--bad);font-weight:600}
+.dcard{margin:12px 12px 0;padding:12px 16px;background:var(--card);border:1px solid var(--line);border-radius:12px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.dcard b{font-size:1.15rem}.dcard small{display:block;color:var(--mut)}
+.dcard .ar{font-family:'Amiri Quran',serif;font-size:1.7rem;color:var(--gold);direction:rtl;white-space:nowrap}
+.chip{display:inline-block;font-size:.72rem;font-weight:600;padding:1px 8px;border-radius:99px;border:1px solid var(--gold);color:var(--gold);margin-left:8px;vertical-align:middle}
+.chip.mb{border-color:var(--line);color:var(--mut)}
+#dPage{margin-top:10px}
+.ay{border-radius:8px;transition:background .3s}
+.ay.on{background:color-mix(in srgb,var(--gold) 24%,transparent);box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 24%,transparent)}
+.hw{border-bottom:2px solid var(--gold)}
+.bsm{text-align:center;margin:.2em 0}
+.dhint{direction:ltr;text-align:center;color:var(--mut);font:16px/1.5 Figtree,system-ui,sans-serif;padding:30px 10px}
+.dock .s.on{color:var(--gold);font-weight:700}
+.dgo{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;padding:14px 16px;margin-bottom:16px;background:var(--card);border:2px solid var(--gold);border-radius:12px}
+.dgo b{display:block}.dgo small{color:var(--mut)}.dgo svg{color:var(--gold);flex:none}
 </style></head>
 <body>
 <section id="setup" class="wrap">
 <h1>Murojaah Hafalan</h1>
 <p class="sub">Ayat tersembunyi. Baca dengan lisan, teks muncul mengikuti bacaanmu.</p>
+<button class="dgo" id="goDet"><span><b>Deteksi ayat otomatis</b><small>Perdengarkan bacaan, halaman mushaf muncul sendiri</small></span><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
 <div class="seg" id="modes"><button data-m="s" class="on">Surat</button><button data-m="j">Juz</button><button data-m="h">Halaman</button><button data-m="r">Bebas</button></div>
 <div id="pS" class="pane"><label>Surat<select id="selS"></select></label>
 <div class="row"><label>Dari ayat<input id="sa1" type="number" min="1" inputmode="numeric" placeholder="1"></label><label>Sampai ayat<input id="sa2" type="number" min="1" inputmode="numeric" placeholder="akhir"></label></div></div>
@@ -79,7 +96,22 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 <p id="sum" class="rng"></p>
 <p class="sub" style="margin:14px 0 6px">Toleransi bacaan</p><div class="seg" id="tolSeg"></div><p class="note" id="tolNote" style="margin:-6px 0 16px"></p>
 <button class="go" id="go">Mulai murojaah</button>
-<p class="note">Buka di Chrome Android dan izinkan mikrofon. Kata yang keliru ditandai merah, tanpa getaran. Versi 7.</p>
+<p class="note">Buka di Chrome Android dan izinkan mikrofon. Kata yang keliru ditandai merah, tanpa getaran. Versi 8.</p>
+</section>
+
+<section id="det" hidden>
+<div class="top">
+<div class="l1"><button class="back" id="dBack">Kembali</button><b id="dTitle">Deteksi ayat</b><button class="back" id="dFollow">Ikuti: nyala</button></div>
+<div id="dSt">Tekan mikrofon, lalu baca atau putar bacaan.</div>
+</div>
+<div class="dcard" id="dCard" hidden><div><b id="dName"></b><small id="dMeta"></small></div><div class="ar" id="dAr"></div></div>
+<div class="page" id="dPage" dir="rtl"></div>
+<div class="dock">
+<button class="s" id="dPrev">Hlm sebelum</button>
+<button class="s" id="dReset">Reset</button>
+<button class="mic" id="dMic" aria-label="Mulai atau hentikan mikrofon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+<button class="s" id="dNext">Hlm sesudah</button>
+</div>
 </section>
 
 <section id="read" hidden>
@@ -188,6 +220,88 @@ $('rep').onclick=()=>{pos=AY[W[Math.min(pos,W.length-1)].ai].st;curAy=-1;rebase(
 $('hint').onclick=()=>{const el=els[pos];if(!el)return;el.classList.add('hint');setTimeout(()=>{el.classList.remove('hint');paint()},1800)};
 $('all').onclick=()=>{showAll=!showAll;$('page').classList.toggle('all',showAll);$('all').textContent=showAll?'Sembunyikan':'Buka semua'};
 $('page').onclick=e=>{const n=e.target.closest('.num');if(n){pos=AY[+n.dataset.k].st;curAy=-1;rebase()}};
+
+//#DET-CORE-START
+const K=w=>w.replace(/[اوي]/g,'')||w;
+let GW=null,GK,GA,AS,BI;
+function dIdx(){if(GW)return;GW=[];GK=[];GA=[];AS=[0];BI=new Map();
+for(let n=1;n<=6236;n++){const[s,a]=UN(n);AS[n]=GW.length;D[s].v[a-1].split(/\s+/).forEach(w=>{const x=N(w);if(x){GW.push(x);GK.push(K(x));GA.push(n)}})}
+AS[6237]=GW.length;
+for(let i=0;i+1<GW.length;i++){const k=GK[i]+'|'+GK[i+1];let l=BI.get(k);if(!l)BI.set(k,l=[]);l.push(i)}}
+const dm=(a,b)=>{if(a===b)return 1;const L=Math.max(a.length,b.length);if(L<3||Math.abs(a.length-b.length)>2)return 0;return lev(a,b)<=Math.max(1,Math.floor(L*.3))?1:0};
+function loc1(w,cur){const n=w.length;if(n<3)return null;
+const wk=w.map(K),seen=new Set();let best=null,alt=null;
+for(let i=0;i+1<n;i++){const l=BI.get(wk[i]+'|'+wk[i+1]);if(!l||l.length>600)continue;
+for(const p of l){const o=p-i;if(seen.has(o))continue;seen.add(o);
+let sc=0,tail=0;for(let t=0;t<n;t++){const g=GW[o+t];if(g!==undefined&&dm(w[t],g)){sc++;if(t>=n-3)tail++}}
+if(sc<3||tail<2)continue;
+const e=Math.min(o+n-1,GW.length-1);let b=sc;if(cur>=0&&e>=cur-3&&e<=cur+40)b+=1.5;
+const c={b,sc,n,e};
+if(!best||b>best.b){if(best&&Math.abs(best.e-e)>15)alt=best;best=c}
+else if(Math.abs(best.e-e)>15&&(!alt||b>alt.b))alt=c}}
+if(!best)return null;
+return{e:best.e,sc:best.sc,n,conf:best.sc/n,amb:!!(alt&&alt.b>=best.b-.5)}}
+function loc(T,cur){dIdx();if(T.length<3)return null;
+for(const n of[12,7,4]){const w=T.slice(-Math.min(n,T.length)),r=loc1(w,cur);
+if(r&&r.sc>=3&&r.conf>=(r.n<=4?.75:.6))return r;if(T.length<=n)break}
+return null}
+//#DET-CORE-END
+
+/* ===== Deteksi ayat otomatis ===== */
+let dRec=null,dOn=false,dCur=-1,dFollow=true,dYak=false,dPg=0,dAy=0,dPend=null;
+const JZ=n=>{let j=1;while(j<30&&J[j+1]<=n)j++;return j};
+const wd=t=>t.trim().split(/\s+/).map(N).filter(Boolean);
+function dRender(pg){dIdx();dPg=pg;dAy=0;const a=P[pg],b=P[pg+1]-1;let h='';
+for(let n=a;n<=b;n++){const[s,v]=UN(n);
+if(v===1){h+=`<h2 class="sh">سورة ${D[s].n}</h2>`;if(s!==1&&s!==9)h+=`<div class="bsm">${D[1].v[0]}</div>`}
+let wi=AS[n],h2='';
+D[s].v[v-1].split(/\s+/).filter(Boolean).forEach(w=>{if(N(w)){h2+=`<span id="dw${wi}">${w}</span> `;wi++}else h2+=`<span>${w}</span> `});
+h+=`<span class="ay" id="ay${n}">${h2}<span class="num">${AR(v)}</span></span> `}
+$('dPage').innerHTML=h;$('dTitle').textContent='Halaman '+pg}
+function dMark(){document.querySelectorAll('#dPage .on,#dPage .hw').forEach(x=>x.classList.remove('on','hw'));
+const n=GA[dCur],ay=$('ay'+n),w=$('dw'+dCur);if(ay)ay.classList.add('on');if(w)w.classList.add('hw');
+if(ay&&dAy!==n){dAy=n;ay.scrollIntoView({block:'center',behavior:'smooth'})}}
+function dShow(e,yakin){const n=GA[e],[s,a]=UN(n),pg=PG(n);dCur=e;dYak=yakin;
+$('dCard').hidden=false;
+$('dName').innerHTML=`${D[s].t} : ${a}<span class="chip${yakin?'':' mb'}">${yakin?'Yakin':'Mungkin'}</span>`;
+$('dMeta').textContent=`Halaman ${pg} · Juz ${JZ(n)}`;$('dAr').textContent='سورة '+D[s].n;
+if(!dFollow)return;
+if(dPg!==pg){dRender(pg);window.scrollTo(0,0)}
+dMark()}
+function dRun(T,r){$('dSt').className='';$('dSt').textContent='Terdengar: '+T.slice(-4).join(' ');
+if(!r)return;
+const yakin=r.sc>=5&&r.conf>=.7&&!r.amb;
+if(dCur>=0&&r.e<dCur&&dCur-r.e<=8)return;
+const far=dCur>=0&&Math.abs(r.e-dCur)>40;
+if(far&&!yakin){const k=GA[r.e];if(dPend&&dPend.k===k)dPend.c++;else dPend={k,c:1};if(dPend.c<2)return}
+dPend=null;dShow(r.e,yakin)}
+function dStart(){const st=$('dSt');
+if(!SR){st.className='err';st.textContent='Peramban ini belum mendukung pengenalan suara. Pakai Chrome di Android.';return}
+dIdx();dRec=new SR();dRec.lang='ar-SA';dRec.continuous=true;dRec.interimResults=true;dRec.maxAlternatives=3;
+dRec.onresult=e=>{const R=e.results,last=R[R.length-1];let pre=[];
+for(let k=R.length-2;k>=0&&pre.length<14;k--)pre=wd(R[k][0].transcript).concat(pre);
+let bT=null,bR=null,bS=-1;
+for(let a=0;a<last.length;a++){const T=pre.concat(wd(last[a].transcript)),r=loc(T,dCur),sc=r?r.sc+r.conf:0;if(!bT||sc>bS){bT=T;bR=r;bS=sc}}
+if(bT)dRun(bT,bR)};
+dRec.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){dStop();st.className='err';st.textContent='Mikrofon diblokir. Ketuk ikon gembok di samping alamat, lalu izinkan Mikrofon.'}};
+dRec.onend=()=>{if(dOn)setTimeout(()=>{try{dRec.start()}catch(e){}},40)};
+dOn=true;$('dMic').classList.add('on');try{dRec.start()}catch(e){}
+st.className='';st.textContent='Mendengarkan… mulai membaca atau putar bacaan.'}
+function dStop(){dOn=false;$('dMic').classList.remove('on');try{dRec&&dRec.stop()}catch(e){}}
+function dFol(){$('dFollow').textContent='Ikuti: '+(dFollow?'nyala':'mati')}
+function dGo(pg){dFollow=false;dFol();dRender(Math.min(604,Math.max(1,pg)));if(dCur>=0&&PG(GA[dCur])===dPg){dAy=GA[dCur];dMark()}window.scrollTo(0,0)}
+$('goDet').onclick=()=>{$('setup').hidden=true;$('det').hidden=false;dIdx();
+if(!dPg&&dCur<0)$('dPage').innerHTML='<div class="dhint">Halaman mushaf akan muncul di sini begitu ayat yang kamu baca atau perdengarkan terdeteksi.</div>';
+window.scrollTo(0,0)};
+$('dBack').onclick=()=>{dStop();$('det').hidden=true;$('setup').hidden=false};
+$('dMic').onclick=()=>dOn?dStop():dStart();
+$('dFollow').onclick=()=>{dFollow=!dFollow;dFol();if(dFollow&&dCur>=0){dPg=0;dShow(dCur,dYak)}};
+$('dPrev').onclick=()=>dGo((dPg||(dCur>=0?PG(GA[dCur]):1))-1);
+$('dNext').onclick=()=>dGo((dPg||0)+1);
+$('dReset').onclick=()=>{dCur=-1;dPend=null;dPg=0;dAy=0;dFollow=true;dFol();$('dCard').hidden=true;$('dTitle').textContent='Deteksi ayat';
+$('dPage').innerHTML='<div class="dhint">Halaman mushaf akan muncul di sini begitu ayat yang kamu baca atau perdengarkan terdeteksi.</div>';
+$('dSt').className='';$('dSt').textContent=dOn?'Mendengarkan… mulai membaca atau putar bacaan.':'Tekan mikrofon, lalu baca atau putar bacaan.'};
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&dOn)dStop()});
 </script><script>
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(e){console.warn('SW gagal',e)})})}
 </script>

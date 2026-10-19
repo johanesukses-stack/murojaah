@@ -1,5 +1,5 @@
 // Service worker Murojaah. Naikkan VERSION setiap kali ingin memaksa cache lama dibuang.
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL = 'murojaah-shell-' + VERSION;
 const FONTS = 'murojaah-fonts-' + VERSION;
 const SHELL_FILES = [
