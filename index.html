@@ -127,7 +127,7 @@ pos=p;errPos=err;paint()}
 function start(){if(!SR){$('st').className='err';$('st').textContent='Peramban ini belum mendukung pengenalan suara. Pakai Chrome di Android.';return}
 rec=new SR();rec.lang='ar-SA';rec.continuous=true;rec.interimResults=true;
 rec.onstart=()=>{sid++};
-rec.onresult=e=>{const T=[];let fin=true;for(let k=0;k<e.results.length;k++){const r=e.results[k];r[0].transcript.trim().split(/\s+/).forEach(w=>{const n=N(w);if(n)T.push(n)});fin=r.isFinal}lastT=T.length;$('st').textContent='Terdengar: '+T.slice(-4).join(' ')run(T,fin)};
+rec.onresult=e=>{const T=[];let fin=true;for(let k=0;k<e.results.length;k++){const r=e.results[k];r[0].transcript.trim().split(/\s+/).forEach(w=>{const n=N(w);if(n)T.push(n)});fin=r.isFinal}lastT=T.length;$('st').textContent='Terdengar: '+T.slice(-4).join(' ');run(T,fin)};
 rec.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){stop();$('st').className='err';$('st').textContent='Mikrofon diblokir. Ketuk ikon gembok di samping alamat, lalu izinkan Mikrofon.'}};
 rec.onend=()=>{base={pos,off:0};lastT=0;if(listening)setTimeout(()=>{try{rec.start()}catch(e){}},120)};
 listening=true;$('mic').classList.add('on');try{rec.start()}catch(e){}$('st').className='';$('st').textContent='Mendengarkan… mulai membaca.'}
