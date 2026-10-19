@@ -2,6 +2,15 @@
 <html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Murojaah Hafalan</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#12233B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Murojaah">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Figtree:wght@400;600;700&display=swap">
 <style>
 :root{--bg:#F3F6F9;--card:#fff;--ink:#12233B;--mut:#5B6B80;--line:#C5D0DD;--gold:#9A7218;--bad:#C62F3A;--on:#fff;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -179,4 +188,7 @@ $('rep').onclick=()=>{pos=AY[W[Math.min(pos,W.length-1)].ai].st;curAy=-1;rebase(
 $('hint').onclick=()=>{const el=els[pos];if(!el)return;el.classList.add('hint');setTimeout(()=>{el.classList.remove('hint');paint()},1800)};
 $('all').onclick=()=>{showAll=!showAll;$('page').classList.toggle('all',showAll);$('all').textContent=showAll?'Sembunyikan':'Buka semua'};
 $('page').onclick=e=>{const n=e.target.closest('.num');if(n){pos=AY[+n.dataset.k].st;curAy=-1;rebase()}};
-</script></body></html>
+</script><script>
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(e){console.warn('SW gagal',e)})})}
+</script>
+</body></html>
