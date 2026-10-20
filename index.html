@@ -148,7 +148,22 @@ mark.df{background:color-mix(in srgb,var(--gold) 35%,transparent);color:inherit;
 .hza .num{font-size:.55em}
 .hzw{border-bottom:2px solid transparent}
 .hzt{margin:2px 0 0;color:var(--mut);font-size:calc(.95rem*var(--fz));line-height:1.55}
-.hzm1 .hzc:not(.rv) .hzw~.hzw,.hzm2 .hzc:not(.rv) .hzw{color:transparent;border-color:var(--line)}
+.hzm1 .hzc:not(.rv) .hzu~.hzu .hzw,.hzm2 .hzc:not(.rv) .hzw{color:transparent;border-color:var(--line)}
+/* ===== v14: arti per kata ===== */
+.hzi{display:none}
+.wb1 .hza{display:flex;flex-wrap:wrap;align-items:flex-start;gap:.15em .5em;line-height:1.9}
+.wb1 .hzu{display:inline-flex;flex-direction:column;align-items:center;max-width:40%}
+.wb1 .hzi{display:block;direction:ltr;text-align:center;font:500 calc(.72rem*var(--fz))/1.3 Figtree,system-ui,sans-serif;color:var(--gold);margin-top:-.35em;padding:0 .1em;opacity:.95}
+.wb1 .hzi:empty{display:none}
+.wb1 .hza .num{align-self:center}
+.wb2 .hzu{cursor:pointer;border-radius:6px;transition:background .15s}
+.hzu.sel{background:color-mix(in srgb,var(--gold) 22%,transparent)}
+#wp{position:fixed;z-index:30;max-width:min(78vw,300px);background:var(--card);color:var(--ink);border:1px solid var(--gold);border-radius:12px;padding:8px 14px 10px;box-shadow:0 8px 28px rgba(0,0,0,.18);text-align:center;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .15s,transform .15s}
+#wp.on{opacity:1;transform:none}
+#wp .a{font-family:KFGQPC,'Amiri Quran',serif;font-size:1.6rem;line-height:1.7;direction:rtl}
+#wp .t{font-weight:600;color:var(--gold);line-height:1.35}
+#wp::after{content:"";position:absolute;left:var(--ax,50%);top:100%;width:10px;height:10px;background:var(--card);border-right:1px solid var(--gold);border-bottom:1px solid var(--gold);transform:translate(-50%,-50%) rotate(45deg)}
+#wp.dn::after{top:0;transform:translate(-50%,-50%) rotate(225deg)}
 .hzt0 .hzc:not(.rv) .hzt{display:none}
 </style></head>
 <body>
@@ -175,7 +190,7 @@ mark.df{background:color-mix(in srgb,var(--gold) 35%,transparent);color:inherit;
 </details>
 <button class="go" id="go">Mulai murojaah</button>
 <button class="go alt" id="goHz">Mulai menghafal (audio + terjemah)</button>
-<p class="note">Buka di Chrome Android dan izinkan mikrofon. Kata keliru ditandai merah, huruf keliru bergaris gelombang merah, disertai getar singkat. Mode menghafal memakai audio Syaikh Abdullah Basfar dari everyayah.com (perlu internet) dan terjemah Kemenag. Versi 13.</p>
+<p class="note">Buka di Chrome Android dan izinkan mikrofon. Kata keliru ditandai merah, huruf keliru bergaris gelombang merah, disertai getar singkat. Mode menghafal memakai audio Syaikh Abdullah Basfar dari everyayah.com, terjemah Kemenag, dan arti per kata dari quran.com (perlu internet saat pertama dibuka). Versi 14.</p>
 </section>
 
 <section id="det" hidden>
@@ -205,6 +220,7 @@ mark.df{background:color-mix(in srgb,var(--gold) 35%,transparent);color:inherit;
 <p class="lb">Kecepatan</p><div class="seg" id="hzSp"></div>
 <p class="lb">Teks Arab</p><div class="seg" id="hzAr"></div>
 <p class="lb">Terjemah</p><div class="seg" id="hzTr"></div>
+<p class="lb">Arti per kata</p><div class="seg" id="hzWb"></div>
 <p class="lb">Basmalah sebelum ayat 1</p><div class="seg" id="hzBs"></div>
 <p class="lb">Gulir otomatis ke ayat yang diputar</p><div class="seg" id="hzAs"></div>
 <p class="lb">Kualitas audio</p><div class="seg" id="hzQ"></div>
@@ -213,7 +229,9 @@ mark.df{background:color-mix(in srgb,var(--gold) 35%,transparent);color:inherit;
 <div class="hzr"><label>Putar dari<select id="hzF"></select></label><label>sampai<select id="hzT"></select></label><button class="go2" id="hzAll">Semua</button></div>
 <p class="rng" id="hzSum"></p>
 <div id="hzL"></div>
+<p class="note" id="hzSrc" style="text-align:center">Terjemah: Kemenag RI. Arti per kata: quran.com. Audio: Syaikh Abdullah Basfar (everyayah.com).</p>
 </div>
+<div id="wp" role="tooltip"><div class="a"></div><div class="t"></div></div>
 <div class="dock">
 <button class="s" id="hzPrev">Ayat sebelum</button>
 <button class="s" id="hzStop">Henti</button>
@@ -508,7 +526,7 @@ applySet();
 /* ===== Mode menghafal: per ayat + terjemah + audio Abdullah Basfar ===== */
 let TR=null;const trx=(s,a)=>{if(!TR)TR=JSON.parse($('tr').textContent);return TR[s-1][a-1]||''};
 const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
-const HZD={na:3,nr:1,gap:'0',sp:'1',q:'64kbps',ar:'show',tr:1,bs:1,as:1};
+const HZD={na:3,nr:1,gap:'0',sp:'1',q:'64kbps',ar:'show',tr:1,bs:1,as:1,wb:'1'};
 let HZ=Object.assign({},HZD);try{Object.assign(HZ,JSON.parse(localStorage.getItem('hzs')||'{}'))}catch(e){}
 let HAF=new Set;try{HAF=new Set(JSON.parse(localStorage.getItem('hafal')||'[]'))}catch(e){}
 const svHz=()=>sv('hzs',JSON.stringify(HZ)),svHaf=()=>sv('hafal',JSON.stringify([...HAF]));
@@ -522,8 +540,38 @@ const[s1,a1]=UN(s),[s2,a2]=UN(e);$('hzW').textContent=s1===s2?`${D[s1].t} ${a1}�
 hzRender();hzSetUI();$('setup').hidden=true;$('hz').hidden=false;window.scrollTo(0,0);hzMsg('Pilih ayat, lalu tekan putar. Ketuk ▶ di kartu untuk memutar satu ayat.')}
 function hzRender(){
 $('hzL').innerHTML=HLS.map((n,k)=>{const[s,a]=UN(n);const ws=[];D[s].v[a-1].split(/\s+/).filter(Boolean).forEach(w=>{if(N(w)||!ws.length)ws.push(w);else ws[ws.length-1]+=' '+w});
-return (a===1?`<div class="hzs">سورة ${D[s].n}<small>${D[s].t}</small></div>`:'')+`<div class="hzc${HAF.has(n)?' ok':''}" id="hz${k}" data-k="${k}"><div class="hzh"><b>${D[s].t} : ${a}</b><span><button class="hzb" data-act="haf">${HAF.has(n)?'✓ Hafal':'Tandai hafal'}</button><button class="hzb pl" data-act="play" aria-label="Putar ayat ini saja">▶</button></span></div><div class="hza" data-act="rv">${ws.map(w=>`<span class="hzw">${w}</span>`).join(' ')} <span class="num">${AR(a)}</span></div><p class="hzt">${esc(trx(s,a))}</p></div>`}).join('');
-const op=HLS.map((n,k)=>{const[s,a]=UN(n);return `<option value="${k}">${D[s].t} ${a}</option>`}).join('');$('hzF').innerHTML=op;$('hzT').innerHTML=op;hzRng()}
+return (a===1?`<div class="hzs">سورة ${D[s].n}<small>${D[s].t}</small></div>`:'')+`<div class="hzc${HAF.has(n)?' ok':''}" id="hz${k}" data-k="${k}"><div class="hzh"><b>${D[s].t} : ${a}</b><span><button class="hzb" data-act="haf">${HAF.has(n)?'✓ Hafal':'Tandai hafal'}</button><button class="hzb pl" data-act="play" aria-label="Putar ayat ini saja">▶</button></span></div><div class="hza" data-act="rv">${hzUnits(ws,null)} <span class="num">${AR(a)}</span></div><p class="hzt">${esc(trx(s,a))}</p></div>`}).join('');
+const op=HLS.map((n,k)=>{const[s,a]=UN(n);return `<option value="${k}">${D[s].t} ${a}</option>`}).join('');$('hzF').innerHTML=op;$('hzT').innerHTML=op;hzRng();wbwLoad()}
+const hzUnits=(ws,tr)=>ws.map((w,i)=>`<span class="hzu" data-i="${i}"><span class="hzw">${w}</span><small class="hzi">${tr&&tr[i]?esc(tr[i]):''}</small></span>`).join(' ');
+
+/* Arti per kata: diambil per surat dari API quran.com (bahasa Indonesia), disimpan di HP setelah pertama dimuat. */
+const WBW={},WBP={};
+function wbwGet(s){if(WBW[s])return Promise.resolve(WBW[s]);try{const c=localStorage.getItem('wbw'+s);if(c)return Promise.resolve(WBW[s]=JSON.parse(c))}catch(e){}
+if(WBP[s])return WBP[s];
+const u=p=>`https://api.quran.com/api/v4/verses/by_chapter/${s}?language=id&words=true&word_fields=text_uthmani&fields=verse_number&per_page=50&page=${p}`;
+const pg=p=>fetch(u(p)).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()});
+return WBP[s]=pg(1).then(j=>{const tp=(j.pagination&&j.pagination.total_pages)||1,ps=[Promise.resolve(j)];for(let p=2;p<=tp;p++)ps.push(pg(p));return Promise.all(ps)}).then(js=>{
+const out=Array.from({length:D[s].v.length},()=>null);
+js.forEach(j=>j.verses.forEach(v=>{const W=v.words.filter(w=>w.char_type_name==='word');out[v.verse_number-1]=[W.map(w=>(w.translation&&w.translation.text||'').trim()),W.map(w=>w.text_uthmani||w.text||'')]}));
+if(out.some(x=>!x))throw new Error('data tidak lengkap');
+WBW[s]=out;try{localStorage.setItem('wbw'+s,JSON.stringify(out))}catch(e){}return out}).finally(()=>{delete WBP[s]})}
+function wbwFill(s,data){HLS.forEach((n,k)=>{const[ss,a]=UN(n);if(ss!==s)return;const c=$('hz'+k);if(!c)return;const d=data[a-1],us=c.querySelectorAll('.hzu');
+if(us.length===d[0].length)us.forEach((u,i)=>{u.querySelector('.hzi').textContent=d[0][i]});
+else c.querySelector('.hza').innerHTML=hzUnits(d[1],d[0])+` <span class="num">${AR(a)}</span>`})}
+function wbwLoad(){if(HZ.wb==='0'||!HLS.length)return;const ss=[...new Set(HLS.map(n=>UN(n)[0]))];let miss=0;
+ss.forEach(s=>{const cached=WBW[s]||(()=>{try{return localStorage.getItem('wbw'+s)}catch(e){}})();if(!cached)miss++;
+wbwGet(s).then(d=>wbwFill(s,d)).catch(()=>{if(hzState==='idle')hzMsg('Arti per kata belum bisa dimuat. Perlu internet saat pertama kali membuka surat ini.',1)})});
+if(miss&&hzState==='idle')hzMsg('Memuat arti per kata…')}
+function wpShow(u){const c=u.closest('.hzc'),[s,a]=UN(HLS[+c.dataset.k]),i=+u.dataset.i,d=WBW[s]&&WBW[s][a-1],t=u.querySelector('.hzi').textContent||(d&&d[0][i])||'';
+document.querySelectorAll('.hzu.sel').forEach(x=>x.classList.remove('sel'));
+const wp=$('wp');if(!t){wp.classList.remove('on');hzMsg('Arti per kata belum dimuat (perlu internet).',1);return}
+u.classList.add('sel');wp.querySelector('.a').textContent=u.querySelector('.hzw').textContent;wp.querySelector('.t').textContent=t;
+wp.style.left='0px';wp.style.top='0px';wp.classList.add('on');const r=u.getBoundingClientRect(),w=wp.offsetWidth,h=wp.offsetHeight,vw=innerWidth;
+let x=Math.min(vw-w-8,Math.max(8,r.left+r.width/2-w/2)),y=r.top-h-10,dn=false;if(y<70){y=r.bottom+10;dn=true}
+wp.classList.toggle('dn',dn);wp.style.left=x+'px';wp.style.top=y+'px';wp.style.setProperty('--ax',(r.left+r.width/2-x)+'px')}
+function wpHide(){$('wp').classList.remove('on');document.querySelectorAll('.hzu.sel').forEach(x=>x.classList.remove('sel'))}
+addEventListener('scroll',wpHide,{passive:true});
+document.addEventListener('click',e=>{if(!e.target.closest('.hzu'))wpHide()});
 function hzRng(){$('hzF').value=hzA;$('hzT').value=hzB;HLS.forEach((_,k)=>{const c=$('hz'+k);if(c)c.classList.toggle('out',k<hzA||k>hzB)});hzSum()}
 function hzSum(){const h=HLS.filter(n=>HAF.has(n)).length;$('hzSum').textContent=`${HLS.length} ayat, ${h} ditandai hafal. Diputar: ${hzB-hzA+1} ayat × ${HZ.na} kali, rentang ${HZ.nr>0?HZ.nr+' kali':'terus-menerus'}.`}
 function hzSetUI(){$('hzNa').value=HZ.na;$('hzNr').value=HZ.nr;
@@ -532,10 +580,11 @@ segUI('hzGap',[['0','Tanpa'],['3','3 dtk'],['6','6 dtk'],['a','Sepanjang ayat']]
 segUI('hzSp',[['0.75','0.75×'],['1','1×'],['1.25','1.25×']],HZ.sp,v=>{S('sp',v);au.playbackRate=+v});
 segUI('hzAr',[['show','Tampil'],['m1','Kata awal saja'],['m2','Sembunyi']],HZ.ar,v=>S('ar',v));
 segUI('hzTr',[[1,'Tampil'],[0,'Sembunyi']],HZ.tr,v=>S('tr',+v));
+segUI('hzWb',[['1','Di bawah kata'],['2','Ketuk kata'],['0','Mati']],HZ.wb,v=>{S('wb',v);wbwLoad()});
 segUI('hzBs',[[1,'Nyala'],[0,'Mati']],HZ.bs,v=>S('bs',+v));
 segUI('hzAs',[[1,'Nyala'],[0,'Mati']],HZ.as,v=>S('as',+v));
 segUI('hzQ',[['64kbps','Hemat kuota'],['192kbps','Jernih']],HZ.q,v=>S('q',v));
-const L=$('hzL');L.classList.toggle('hzm1',HZ.ar==='m1');L.classList.toggle('hzm2',HZ.ar==='m2');L.classList.toggle('hzt0',!HZ.tr);hzSum()}
+const L=$('hzL');L.classList.toggle('hzm1',HZ.ar==='m1');L.classList.toggle('hzm2',HZ.ar==='m2');L.classList.toggle('hzt0',!HZ.tr);L.classList.toggle('wb1',HZ.wb==='1');L.classList.toggle('wb2',HZ.wb==='2');hzSum()}
 const clampN=(v,a,b,d)=>{v=parseInt(v);return isNaN(v)?d:Math.min(b,Math.max(a,v))};
 $('hzNa').onchange=()=>{HZ.na=clampN($('hzNa').value,1,99,3);svHz();hzSetUI()};
 $('hzNr').onchange=()=>{HZ.nr=clampN($('hzNr').value,0,99,1);svHz();hzSetUI()};
@@ -543,7 +592,8 @@ $('hzSetB').onclick=()=>{$('hzSet').hidden=!$('hzSet').hidden;$('hzSetB').textCo
 $('hzF').onchange=()=>{hzA=+$('hzF').value;if(hzA>hzB)hzB=hzA;hzRng();if(hzState!=='idle')hzStart(hzA)};
 $('hzT').onchange=()=>{hzB=+$('hzT').value;if(hzB<hzA)hzA=hzB;hzRng();if(hzState!=='idle'&&(hzI<hzA||hzI>hzB))hzStart(hzA)};
 $('hzAll').onclick=()=>{hzA=0;hzB=HLS.length-1;hzRng()};
-$('hzL').onclick=e=>{const b=e.target.closest('[data-act]'),c=e.target.closest('.hzc');if(!b||!c)return;const k=+c.dataset.k,n=HLS[k];
+$('hzL').onclick=e=>{const b=e.target.closest('[data-act]'),c=e.target.closest('.hzc'),u=e.target.closest('.hzu');if(!b||!c)return;const k=+c.dataset.k,n=HLS[k];
+if(u&&HZ.wb!=='0'&&(HZ.ar==='show'||c.classList.contains('rv'))){if(u.classList.contains('sel'))wpHide();else wpShow(u);return}
 if(b.dataset.act==='haf'){if(HAF.has(n))HAF.delete(n);else HAF.add(n);svHaf();c.classList.toggle('ok',HAF.has(n));b.textContent=HAF.has(n)?'✓ Hafal':'Tandai hafal';hzSum()}
 else if(b.dataset.act==='play'){hzA=hzB=k;hzRng();hzStart(k)}
 else if(b.dataset.act==='rv')c.classList.toggle('rv')};
